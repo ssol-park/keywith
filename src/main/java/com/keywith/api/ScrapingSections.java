@@ -11,7 +11,7 @@ import java.util.Map;
 public enum ScrapingSections {
     CALENDER_INFO("증시캘린더", Arrays.asList("청약", "상장")),
     COMPANY_INFO("기업개요", Arrays.asList("종목명", "시장구분", "업종", "홈페이지", "매출액", "순이익")),
-    STOCK_INFO("공모정보", Arrays.asList("희망공모가액", "확정공모가", "주간사")),
+    STOCK_INFO("공모정보", Arrays.asList("희망공모가액", "확정공모가", "청약경쟁률", "주간사")),
     SUBSCRIPTION_INFO("공모청약일정", Arrays.asList("공모청약일", "납입일", "환불일", "상장일"));
 
     private final String summary;

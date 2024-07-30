@@ -60,6 +60,7 @@ public class ScrapService {
                             (oldValue, newValue) -> newValue
                     ));
         }).onErrorResume(e -> {
+            e.printStackTrace();
             log.error("ERROR :: {}", e.getMessage());
             return Mono.empty();
         });
