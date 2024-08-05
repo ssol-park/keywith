@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-@Table("market")
+@Table("underwriter")
 public class Underwriter {
     @Id
     private long id;
