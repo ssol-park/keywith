@@ -1,20 +1,22 @@
 package com.keywith.api.entity;
 
+import com.keywith.api.dto.ScrapResultDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
 @Getter
+@ToString
 @NoArgsConstructor
 @Table("public_offering")
 public class PublicOffering {
     @Id
     private long id;
     private int stockCode;
-    private int underwriterId;
     private String offeringScheduleStart;
     private String offeringScheduleEnd;
     private long confirmedOfferingPrice;
@@ -26,4 +28,18 @@ public class PublicOffering {
     private String refundDate;
     private LocalDateTime updatedAt;
     private LocalDateTime createdAt;
+
+    public PublicOffering(ScrapResultDto scrapDto) {
+        this.stockCode = scrapDto.getStockCode();
+        this.offeringScheduleStart = scrapDto.getOfferingScheduleStart();
+        this.offeringScheduleEnd = scrapDto.getOfferingScheduleEnd();
+        this.confirmedOfferingPrice = scrapDto.getConfirmedOfferingPrice();
+        this.desiredOfferingPriceMin = scrapDto.getDesiredOfferingPriceMin();
+        this.desiredOfferingPriceMax = scrapDto.getDesiredOfferingPriceMax();
+        this.subscriptionCompetitionRate = scrapDto.getSubscriptionCompetitionRate();
+        this.subscriptionDate = scrapDto.getListingDate();
+        this.paymentDate = scrapDto.getPaymentDate();
+        this.refundDate = scrapDto.getRefundDate();
+    }
+
 }
