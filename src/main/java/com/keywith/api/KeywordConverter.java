@@ -17,6 +17,7 @@ public class KeywordConverter {
 
     static {
         // 한글 키워드를 영문 키워드로 매핑
+        KEYWORD_MAP.put("종목코드", "stockCode");
         KEYWORD_MAP.put("종목명", "stockName");
         KEYWORD_MAP.put("시장구분", "marketType");
         KEYWORD_MAP.put("업종", "industry");
