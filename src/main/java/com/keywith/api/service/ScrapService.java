@@ -1,25 +1,25 @@
-package com.keywith.api;
+package com.keywith.api.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.keywith.api.JsoupUtil;
+import com.keywith.api.KeywordConverter;
+import com.keywith.api.ScrapProperties;
+import com.keywith.api.ScrapingSections;
+import com.keywith.api.dto.ScrapResultDto;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import javax.print.Doc;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,25 +27,27 @@ import java.util.stream.Stream;
 @Service
 public class ScrapService {
 
+    private ObjectMapper om = new ObjectMapper();
     private final ScrapProperties scrapProperties;
 
     public ScrapService(ScrapProperties scrapProperties) {
         this.scrapProperties = scrapProperties;
     }
 
-    public Flux<Map<String, Object>> scrapData() throws IOException {
+    public Flux<ScrapResultDto> scrapData() throws IOException {
         List<String> detailPageUrls = getDetailPageUrls(scrapProperties.getBaseUrl(), ScrapingSections.CALENDER_INFO);
 
          return Flux.fromIterable(detailPageUrls)
                 .parallel()
                 .runOn(Schedulers.boundedElastic())
                 .flatMap(this::scrapDetailPage)
+                .map(data -> om.convertValue(data, ScrapResultDto.class))
                 .sequential();
     }
 
-    private Mono<Map<String, Object>> scrapDetailPage(String deatilUrl) {
+    private Mono<Map<String, Object>> scrapDetailPage(String detailUrl) {
         return Mono.fromCallable(() -> {
-            Document document = JsoupUtil.getDocumentByUrl(deatilUrl);
+            Document document = JsoupUtil.getDocumentByUrl(detailUrl);
 
             return Stream.of(
                         ScrapingSections.COMPANY_INFO,
