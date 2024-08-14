@@ -1,5 +1,6 @@
 package com.keywith.api.entity;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -10,11 +11,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @ToString
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table("industry")
 public class Industry {
     @Id
-    private long id;
+    private Long id;
     private String name;
     private LocalDateTime updatedAt;
     private LocalDateTime createdAt;
