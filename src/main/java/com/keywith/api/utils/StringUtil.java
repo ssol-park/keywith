@@ -1,4 +1,4 @@
-package com.keywith.api;
+package com.keywith.api.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

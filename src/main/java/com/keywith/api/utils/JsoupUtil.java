@@ -1,5 +1,6 @@
-package com.keywith.api;
+package com.keywith.api.utils;
 
+import com.keywith.api.enums.ScrapingSections;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;
