@@ -1,15 +1,15 @@
-package com.keywith.api;
+package com.keywith.api.converter;
 
+import com.keywith.api.utils.StringUtil;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KeywordConverter {
     public static final String DELIMITERS_REGEX = "[,\\.]";
     public static final String RANGE_DELIMITER = "~";
@@ -24,11 +24,11 @@ public class KeywordConverter {
         KEYWORD_MAP.put("홈페이지", "website");
         KEYWORD_MAP.put("매출액", "revenue");
         KEYWORD_MAP.put("순이익", "netIncome");
-        KEYWORD_MAP.put("청약경쟁률", "subscriptionCompetitionRate");
-        KEYWORD_MAP.put("확정공모가", "confirmedOfferingPrice");
+        KEYWORD_MAP.put("청약경쟁률", "competitionRate");
+        KEYWORD_MAP.put("확정공모가", "confirmedPrice");
         KEYWORD_MAP.put("희망공모가액", "desiredOfferingPrice");
         KEYWORD_MAP.put("주간사", "underwriters");
-        KEYWORD_MAP.put("공모청약일", "offeringSchedule");
+        KEYWORD_MAP.put("공모청약일", "subscriptionDate");
         KEYWORD_MAP.put("납입일", "paymentDate");
         KEYWORD_MAP.put("환불일", "refundDate");
         KEYWORD_MAP.put("상장일", "listingDate");
@@ -40,30 +40,23 @@ public class KeywordConverter {
         switch (koreanKeyword) {
             case "희망공모가액":
                 String[] priceRange = StringUtil.removeKeywordAndSplit(value, "원", RANGE_DELIMITER);
-                result.put("desiredOfferingPriceMin", StringUtil.parseToLong(priceRange[0]));
-                result.put("desiredOfferingPriceMax", StringUtil.parseToLong(priceRange[1]));
+                result.put("desiredPriceMin", StringUtil.parseToLong(priceRange[0]));
+                result.put("desiredPriceMax", StringUtil.parseToLong(priceRange[1]));
                 break;
 
             case "확정공모가":
                 result.put(KEYWORD_MAP.get(koreanKeyword), StringUtil.parseToLong(StringUtil.removeKeywords(value, "원", ",")));
                 break;
 
-            case "주간사":
-                String[] underwriters = StringUtil.splitByDelimiter(value, DELIMITERS_REGEX);
-
-                result.put(KEYWORD_MAP.get(koreanKeyword), Arrays.asList(underwriters));
-                break;
-
-            case "매출액":
-            case "순이익":
+            case "순이익", "매출액":
                 long amount = StringUtil.parseMillionUnit(value);
                 result.put(KEYWORD_MAP.get(koreanKeyword), amount);
                 break;
 
             case "공모청약일":
                 String[] scheduleRange = StringUtil.splitByDelimiter(value, RANGE_DELIMITER);
-                result.put("offeringScheduleStart", scheduleRange[0]);
-                result.put("offeringScheduleEnd", scheduleRange[1]);
+                result.put("offeringStartDate", scheduleRange[0]);
+                result.put("offeringEndDate", scheduleRange[1]);
                 break;
 
             default:
