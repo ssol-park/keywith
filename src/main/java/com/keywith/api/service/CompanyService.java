@@ -4,9 +4,11 @@ import com.keywith.api.dto.ScrapResultDto;
 import com.keywith.api.entity.Company;
 import com.keywith.api.entity.Industry;
 import com.keywith.api.entity.Market;
-import com.keywith.api.repository.CompanyRepository;
+import com.keywith.api.mapper.CompanyMapper;
+import com.keywith.api.query.SQLQueries;
 import com.keywith.api.repository.IndustryRepository;
 import com.keywith.api.repository.MarketRepository;
+import com.keywith.api.utils.QueryHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -14,26 +16,28 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 public class CompanyService {
-
-    private final CompanyRepository companyRepository;
     private final MarketRepository marketRepository;
     private final IndustryRepository industryRepository;
+    private final QueryHelper queryHelper;
+    private final CompanyMapper companyMapper;
 
-    public CompanyService(CompanyRepository companyRepository, MarketRepository marketRepository, IndustryRepository industryRepository) {
-        this.companyRepository = companyRepository;
+    public CompanyService(MarketRepository marketRepository, IndustryRepository industryRepository, QueryHelper queryHelper, CompanyMapper companyMapper) {
         this.marketRepository = marketRepository;
         this.industryRepository = industryRepository;
+        this.queryHelper = queryHelper;
+        this.companyMapper = companyMapper;
     }
 
-    public Mono<Company> saveCompany(ScrapResultDto scrapDto) {
+    public Mono<Void> saveCompany(ScrapResultDto scrapDto) {
         return Mono.zip(
                 findOrCreateIndustry(scrapDto.getIndustry()),
                 findOrCreateMarket(scrapDto.getMarketType())
         ).flatMap(tuple -> {
             Industry industry = tuple.getT1();
             Market market = tuple.getT2();
+            Company company = companyMapper.scrapDtoToCompany(scrapDto, industry, market);
 
-            return companyRepository.save(new Company(scrapDto, industry, market));
+            return queryHelper.executeUpsert(SQLQueries.Company.UPSERT, company);
         });
     }
 

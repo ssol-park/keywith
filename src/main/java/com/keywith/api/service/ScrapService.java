@@ -1,11 +1,12 @@
 package com.keywith.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keywith.api.JsoupUtil;
-import com.keywith.api.KeywordConverter;
-import com.keywith.api.ScrapProperties;
-import com.keywith.api.ScrapingSections;
+import com.keywith.api.utils.JsoupUtil;
+import com.keywith.api.converter.KeywordConverter;
+import com.keywith.api.config.ScrapProperties;
+import com.keywith.api.enums.ScrapingSections;
 import com.keywith.api.dto.ScrapResultDto;
+import com.keywith.api.utils.ObjectMapperUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,16 +24,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ScrapService {
 
-    private ObjectMapper om = new ObjectMapper();
     private final ScrapProperties scrapProperties;
-
-    public ScrapService(ScrapProperties scrapProperties) {
-        this.scrapProperties = scrapProperties;
-    }
 
     public Flux<ScrapResultDto> scrapData() throws IOException {
         List<String> detailPageUrls = getDetailPageUrls(scrapProperties.getBaseUrl(), ScrapingSections.CALENDER_INFO);
@@ -41,7 +38,7 @@ public class ScrapService {
                 .parallel()
                 .runOn(Schedulers.boundedElastic())
                 .flatMap(this::scrapDetailPage)
-                .map(data -> om.convertValue(data, ScrapResultDto.class))
+                .map(data -> ObjectMapperUtil.mapToEntity(data, ScrapResultDto.class))
                 .sequential();
     }
 
@@ -62,8 +59,7 @@ public class ScrapService {
                             (oldValue, newValue) -> newValue
                     ));
         }).onErrorResume(e -> {
-            e.printStackTrace();
-            log.error("ERROR :: {}", e.getMessage());
+            log.error("ERROR :: ", e);
             return Mono.empty();
         });
 

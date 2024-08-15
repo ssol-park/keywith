@@ -18,7 +18,7 @@ public class DataProcessingService {
 
     public void processAndSaveData(ScrapResultDto scrapDto) {
         companyService.saveCompany(scrapDto)
-                .flatMap(company -> publicOfferingService.savePublicOffering(scrapDto))
+                .then(publicOfferingService.savePublicOffering(scrapDto))
                 .subscribe(
                         result -> log.info("Data processed and saved successfully: {}", result),
                         error -> log.error("Error processing and saving data", error)

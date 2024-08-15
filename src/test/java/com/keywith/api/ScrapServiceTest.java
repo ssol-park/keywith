@@ -2,6 +2,8 @@ package com.keywith.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.keywith.api.dto.ScrapResultDto;
+import com.keywith.api.service.ScrapService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -13,11 +15,6 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 
 @SpringBootTest
 class ScrapServiceTest {
@@ -28,9 +25,9 @@ class ScrapServiceTest {
     ScrapService scrapService;
 
     @Test
-    @DisplayName("스크래핑 및 데이터 가공 전체 테스트")
+    @DisplayName("스크래핑 및 json 매핑 테스트")
     void testScrapData() throws IOException {
-        Flux<Map<String, Object>> scrapResultFlux = scrapService.scrapData();
+        Flux<ScrapResultDto> scrapResultFlux = scrapService.scrapData();
 
         StepVerifier.create(scrapResultFlux)
                 .thenConsumeWhile(data -> {

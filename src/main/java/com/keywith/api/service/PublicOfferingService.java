@@ -4,9 +4,11 @@ import com.keywith.api.dto.ScrapResultDto;
 import com.keywith.api.entity.PublicOffering;
 import com.keywith.api.entity.PublicOfferingUnderwriter;
 import com.keywith.api.entity.Underwriter;
+import com.keywith.api.mapper.PublicOfferingMapper;
+import com.keywith.api.query.SQLQueries;
 import com.keywith.api.repository.PublicOfferingRepository;
-import com.keywith.api.repository.PublicOfferingUnderwriterRepository;
 import com.keywith.api.repository.UnderwriterRepository;
+import com.keywith.api.utils.QueryHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,23 +21,32 @@ import java.util.List;
 public class PublicOfferingService {
     private final PublicOfferingRepository publicOfferingRepository;
     private final UnderwriterRepository underwriterRepository;
-    private final PublicOfferingUnderwriterRepository publicOfferingUnderwriterRepository;
+    private final QueryHelper queryHelper;
+    private final PublicOfferingMapper publicOfferingMapper;
 
-    public PublicOfferingService(PublicOfferingRepository publicOfferingRepository, UnderwriterRepository underwriterRepository, PublicOfferingUnderwriterRepository publicOfferingUnderwriterRepository) {
+    public PublicOfferingService(PublicOfferingRepository publicOfferingRepository, UnderwriterRepository underwriterRepository, QueryHelper queryHelper, PublicOfferingMapper publicOfferingMapper) {
         this.publicOfferingRepository = publicOfferingRepository;
         this.underwriterRepository = underwriterRepository;
-        this.publicOfferingUnderwriterRepository = publicOfferingUnderwriterRepository;
-    }
-    public Mono<PublicOffering> savePublicOffering(ScrapResultDto scrapDto) {
-        return publicOfferingRepository.save(new PublicOffering(scrapDto))
-                .flatMap(savedOffering -> saveUnderwriters(savedOffering, scrapDto.getUnderwriters()));
+        this.queryHelper = queryHelper;
+        this.publicOfferingMapper = publicOfferingMapper;
     }
 
-    private Mono<PublicOffering> saveUnderwriters(PublicOffering savedOffering, List<String> underwriters) {
+    public Mono<Void> savePublicOffering(ScrapResultDto scrapDto) {
+        PublicOffering publicOffering = publicOfferingMapper.scrapDtoToPublicOffering(scrapDto);
+
+        return queryHelper.executeUpsert(SQLQueries.PublicOffering.UPSERT, publicOffering)
+                .then(publicOfferingRepository.findByStockCode(publicOffering.getStockCode()))
+                .flatMap(savedOffering -> saveUnderwriters(savedOffering, scrapDto.getUnderwriters()).then())
+                ;
+    }
+
+    private Flux<Void> saveUnderwriters(PublicOffering savedOffering, List<String> underwriters) {
         return Flux.fromIterable(underwriters)
                 .flatMap(this::findOrCreateUnderwriter)
-                .flatMap(underwriter -> savePublicOfferingUnderwriter(savedOffering.getId(), underwriter.getId()))
-                .then(Mono.just(savedOffering));
+                .flatMap(underwriter -> {
+                    PublicOfferingUnderwriter publicOfferingUnderwriter = publicOfferingMapper.mapToPublicOfferingUnderwriter(savedOffering, underwriter);
+                    return queryHelper.executeUpsert(SQLQueries.PublicOfferingUnderwriter.UPSERT, publicOfferingUnderwriter);
+                });
     }
 
     private Mono<Underwriter> findOrCreateUnderwriter(String name) {
@@ -45,9 +56,5 @@ public class PublicOfferingService {
 
     private Mono<Underwriter> createUnderwriter(String name) {
         return underwriterRepository.save(new Underwriter(name));
-    }
-
-    private Mono<PublicOfferingUnderwriter> savePublicOfferingUnderwriter(Long offeringId, Long underwriterId) {
-        return publicOfferingUnderwriterRepository.save(new PublicOfferingUnderwriter(offeringId, underwriterId));
     }
 }
