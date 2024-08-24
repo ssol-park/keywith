@@ -3,6 +3,7 @@ package com.keywith.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keywith.api.dto.ScrapResultDto;
+import com.keywith.api.service.DataProcessingService;
 import com.keywith.api.service.ScrapService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ class ScrapServiceTest {
     @Autowired
     ScrapService scrapService;
 
+    @Autowired
+    DataProcessingService dataProcessingService;
+
     @Test
     @DisplayName("스크래핑 및 json 매핑 테스트")
     void testScrapData() throws IOException {
@@ -43,5 +47,18 @@ class ScrapServiceTest {
                 .verify();
 
         log.info("testScrapData completed.");
+    }
+
+    @Test
+    @DisplayName("스크래핑 및 데이터 저장 테스트")
+    void testScrapDataAndSaveData() throws IOException {
+        Flux<ScrapResultDto> scrapResultFlux = scrapService.scrapData();
+
+
+        StepVerifier.create(scrapResultFlux.flatMap(scrapDto ->
+                        dataProcessingService.processAndSaveData(scrapDto)
+                ))
+                .expectComplete()
+                .verify();
     }
 }
