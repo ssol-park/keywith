@@ -21,7 +21,8 @@ public class PublicOffering {
     private long confirmedPrice;
     private long desiredPriceMin;
     private long desiredPriceMax;
-    private String competitionRate;
+    private String equalRate;
+    private String proportionalRate;
     private String listingDate;
     private String paymentDate;
     private String refundDate;

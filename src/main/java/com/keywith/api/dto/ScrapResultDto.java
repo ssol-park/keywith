@@ -19,7 +19,8 @@ public class ScrapResultDto {
     private String website;
     private String industry;
     private String marketType;
-    private String competitionRate;
+    private String equalRate;
+    private String proportionalRate;
     private String offeringStartDate;
     private String offeringEndDate;
     private long desiredPriceMin;
