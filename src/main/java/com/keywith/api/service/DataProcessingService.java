@@ -3,6 +3,7 @@ package com.keywith.api.service;
 import com.keywith.api.dto.ScrapResultDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -16,12 +17,12 @@ public class DataProcessingService {
         this.publicOfferingService = publicOfferingService;
     }
 
-    public void processAndSaveData(ScrapResultDto scrapDto) {
-        companyService.saveCompany(scrapDto)
+    public Mono<Void> processAndSaveData(ScrapResultDto scrapDto) {
+        return companyService.saveCompany(scrapDto)
                 .then(publicOfferingService.savePublicOffering(scrapDto))
-                .subscribe(
-                        result -> log.info("Data processed and saved successfully: {}", result),
-                        error -> log.error("Error processing and saving data", error)
-                );
+                .doOnError(error -> {
+                    log.error("[processAndSaveData] Failed to save data for ScrapResultDto {}: {}", scrapDto, error.getMessage(), error);
+                })
+                .then();
     }
 }
